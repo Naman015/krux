@@ -519,11 +519,15 @@ class SettingsPage(Page):
             )
             if new_value == ESC_KEY:
                 return MENU_CONTINUE
-            if new_value != "":
+            if new_value == "":
+                self.flash_error(t("Empty"))
+                continue
+            try:
+                new_value = setting.numtype(new_value)
                 break
-            self.flash_error(t("Empty"))
+            except ValueError:
+                self.flash_error(t("Failed to convert"))
 
-        new_value = setting.numtype(new_value)
         if setting.value_range[0] <= new_value <= setting.value_range[1]:
             setting.__set__(settings_namespace, new_value)
         else:
