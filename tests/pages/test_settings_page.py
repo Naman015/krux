@@ -628,9 +628,26 @@ def test_number_setting_empty_input_shows_error_and_retries(m5stickv, mocker):
 
     settings_page.flash_error.assert_called_once_with("Empty")
     assert Settings().appearance.screensaver_time == 10
+    assert settings_page.capture_from_keypad.call_args.kwargs["starting_buffer"] == ""
+
+
+def test_number_setting_invalid_float_shows_error_and_retries(m5stickv, mocker):
+    from krux.pages.settings_page import SettingsPage
+    from krux.krux_settings import CNCSettings, Settings
+
+    settings_page = SettingsPage(mock_context(mocker))
+    settings_page.capture_from_keypad = mocker.MagicMock(
+        side_effect=("0.532.1", "0.532")
+    )
+    settings_page.flash_error = mocker.MagicMock()
+
+    settings_page.number_setting(CNCSettings(), CNCSettings.flute_diameter)
+
+    settings_page.flash_error.assert_called_once_with("Failed to convert")
+    assert Settings().hardware.printer.cnc.flute_diameter == 0.532
     assert (
-        settings_page.capture_from_keypad.call_args_list[1].kwargs["starting_buffer"]
-        == ""
+        settings_page.capture_from_keypad.call_args.kwargs["starting_buffer"]
+        == "0.532.1"
     )
 
 
